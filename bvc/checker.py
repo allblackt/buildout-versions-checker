@@ -29,8 +29,8 @@ class VersionsChecker(object):
     default_version = '0.0.0'
 
     def __init__(self, source,
-                 specifiers={}, allow_pre_releases=False,
-                 includes=[], excludes=[],
+                 specifiers=None, allow_pre_releases=False,
+                 includes=None, excludes=None,
                  service_url='http://pypi.python.org/pypi',
                  timeout=10, threads=10):
         """
@@ -38,9 +38,9 @@ class VersionsChecker(object):
         of eggs and check available updates.
         """
         self.source = source
-        self.includes = includes
-        self.excludes = excludes
-        self.specifiers = specifiers
+        self.includes = includes if includes is not None else []
+        self.excludes = excludes if excludes is not None else []
+        self.specifiers = specifiers if specifiers is not None else {}
         self.allow_pre_releases = allow_pre_releases
         self.timeout = timeout
         self.threads = threads
@@ -77,11 +77,13 @@ class VersionsChecker(object):
         return versions
 
     def include_exclude_versions(self, source_versions,
-                                 includes=[], excludes=[]):
+                                 includes=None, excludes=None):
         """
         Includes and excludes packages to be checked in
         the default dict of packages with versions.
         """
+        includes = includes if includes is not None else []
+        excludes = excludes if excludes is not None else []
         versions = source_versions.copy()
         packages_lower = [x.lower() for x in versions.keys()]
         for include in includes:
@@ -180,13 +182,13 @@ class UnusedVersionsChecker(VersionsChecker):
     Checks unused eggs in a config file.
     """
 
-    def __init__(self, source, egg_directory, excludes=[]):
+    def __init__(self, source, egg_directory, excludes=None):
         """
         Parses a config file containing pinned versions
         of eggs and check their installation in the egg_directory.
         """
         self.source = source
-        self.excludes = excludes
+        self.excludes = excludes if excludes is not None else []
         self.egg_directory = egg_directory
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
