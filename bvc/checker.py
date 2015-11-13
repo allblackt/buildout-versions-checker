@@ -3,6 +3,7 @@ import os
 import json
 import socket
 
+from six import string_types
 from concurrent import futures
 from collections import OrderedDict
 try:
@@ -141,10 +142,12 @@ class VersionsChecker(object):
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read()
+            # in Python 3 urlopen returns bytes not str, thus needing decoding
+            results = json.loads(content if isinstance(content, string_types)
+                                 else content.decode('utf-8'))
         except URLError as error:
-            content = '{"releases": []}'
+            results = {"releases": []}
             logger.debug('!> %s %s' % (package_json_url, error.reason))
-        results = json.loads(content)
         socket.setdefaulttimeout(None)
         for version in specifier.filter(results['releases']):
             version = parse_version(version)
